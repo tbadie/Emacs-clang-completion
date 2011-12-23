@@ -115,6 +115,9 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
   (anything-other-buffer '(my-completion-lines)
                          "*trololololo*"))
 
+(defun format-and-insert(selection)
+  (insert selection))
+
 (defun clean-and-set (lines)
   (progn
     ;; Erase the process buffer
@@ -131,8 +134,7 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
     (setf my-completion-lines
           '((name . "Completion clang")
             (candidates . lines)
-            (action . (("Action name" . (lambda (selection)
-                              (insert selection)))))))
+            (action . (("Action name" . (format-and-insert (selection)))))))
 
     (anything-apply-selection)))
 
