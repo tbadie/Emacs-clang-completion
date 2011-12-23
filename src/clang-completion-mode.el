@@ -128,42 +128,6 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
     (if (string-match "()" my-line)
         (insert ")"))))
 
-(defun clean-and-set (lines)
-  (progn
-    ;; Erase the process buffer
-    (let ((cur (current-buffer)))
-      (set-buffer buffer)
-      (goto-char (point-min))
-      (erase-buffer)
-      (set-buffer cur))
-
-    ;; Display the process buffer
-    (display-buffer buffer)
-
-    ;; Let's try anything!
-    (setf my-completion-lines
-          '((name . "Completion clang")
-            (candidates . lines)
-            (action . (("Insertion" . (format-and-insert (selection)))))))
-
-    (anything-apply-selection)))
-
-
-
-    ;; Insert the code-completion string into the process buffer.
-;    (with-current-buffer buffer
-;      (insert (mapconcat 'identity lines "\n")))))
-
-
-(defun clang-completion-display (buffer)
-  (let* ((all-lines (split-string clang-result-string "\n"))
-         (error-lines (filter 'is-error-line all-lines))
-         (completion-lines (filter 'is-completion-line all-lines)))
-    (if (consp error-lines)
-        (clean-and-set error-lines)
-      (if (consp completion-lines)
-          (clean-and-set completion-lines)))))
-
 ;; Process "sentinal" that, on successful code completion, replaces the
 ;; contents of the code-completion buffer with the new code-completion results
 ;; and ensures that the buffer is visible.
@@ -251,23 +215,12 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
   (save-buffer)
   (clang-complete))
 
-;; When the user has typed a character that requires the filter to be
-;; updated, do so (and update the display of results).
-(defun clang-update-filter ()
-  (interactive)
-  (setq clang-completion-substring (thing-at-point 'symbol))
-  (if (get-process "Clang Code-Completion")
-      (message "A process is already running.")
-    (clang-completion-display clang-completion-buffer)
-    ))
-
 ;; Invoked when the user types an alphanumeric character or "_" to
 ;; update the filter for the currently-active code completion.
 (defun clang-filter-self-insert (arg)
   (interactive "p")
   (self-insert-command arg)
-  (clang-update-filter)
-  )
+  (clang-update-filter))
 
 ;; Invoked when the user types the backspace key to update the filter
 ;; for the currently-active code completion.
@@ -296,31 +249,9 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
           (cons (cons 'clang-completion-mode clang-completion-mode-map)
                 minor-mode-map-alist)))
 
-;; ;; Punctuation characters trigger code completion.
+;; Punctuation characters trigger code completion.
 (dolist (char '("." ">" ":"))
   (define-key clang-completion-mode-map char 'clang-complete-self-insert))
-
-;; Alphanumeric characters (and "_") filter the results of the
-;; currently-active code completion.
-;; (dolist (char '("A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O"
-;;                 "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z"
-;;                 "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o"
-;;                 "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"
-;;                 "_" "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"))
-;;   (define-key clang-completion-mode-map char 'clang-filter-self-insert))
-
-;; Delete and backspace filter the results of the currently-active
-;; code completion.
-;; (define-key clang-completion-mode-map [(backspace)] 'clang-backspace)
-;; (define-key clang-completion-mode-map [(delete)] 'clang-delete)
-
-(define-key clang-completion-mode-map [f12] 'clang-complete-self-insert)
-
-
-;; Try anything with this.
-
-
-
 
 ;; Set up the Clang minor mode.
 (define-minor-mode clang-completion-mode
