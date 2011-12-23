@@ -105,28 +105,46 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
   (or (string-match "OVERLOAD:" line)
       (string-match (concat "COMPLETION: " clang-completion-substring) line)))
 
-
+;; Determine whether
 (defun is-error-line (line)
   (string-match "[^:]+:[^:]+: error" line))
 
 
+;; Support for anything
+;; Completion
 (defun anything-apply-selection ()
   (interactive)
   (anything-other-buffer '(my-completion-lines)
-                         "*trololololo*"))
+                         "*Clang Completion*"))
 
+(defun anything-goto-error()
+  (interactive)
+  (anything-other-buffer '(my-error-lines)
+                         "*Clang Errors*"))
+
+
+;; Take a line of clang, format it, and insert into the developper's buffer
 (defun format-and-insert(selection)
   (let ((my-line selection))
-;    (replace-regexp-in-string "COMPLETION" "_" line)
-;    (replace-regexp-in-string " : .*" "" line)
     (string-match ": \\([^ ]\+\\) :" my-line)
     (let ((name (substring my-line (match-beginning 1) (match-end 1))))
       (insert name))
-
     (if (string-match " : [^(]\*(" my-line)
         (insert "("))
     (if (string-match "()" my-line)
         (insert ")"))))
+
+
+;; Allow the user to go to the error.
+(defun my-goto-error(selection)
+  (string-match "^\\([^:]+\\):\\([^:]+\\):\\([^:]+\\): error" selection)
+  ;;              ^-filename-^^---line--^^--column--^
+  (let ((file (substring selection (match-beginning 1) (match-end 1)))
+        (line (substring selection (match-beginning 2) (match-end 2)))
+        (column (substring selection (match-beginning 3) (match-end 3))))
+    (find-file file)
+    (goto-line (string-to-number line))
+    (move-to-column (string-to-number column))))
 
 ;; Process "sentinal" that, on successful code completion, replaces the
 ;; contents of the code-completion buffer with the new code-completion results
@@ -144,13 +162,14 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
               (erase-buffer)
               (set-buffer cur))
 
-            ;; Display the process buffer
-            (display-buffer (process-buffer proc))
+            (setf my-error-lines
+                  '((name . "Error Clang")
+                    (candidates . error-lines)
+                    (action . (("Action name" .
+                                (my-goto-error))))))
 
-            ;; Insert the code-completion string into the process buffer.
-            (with-current-buffer (process-buffer proc)
-              (insert (mapconcat 'identity error-lines "\n")))
-            )
+            (anything-goto-error))
+
       (if (consp completion-lines)
           (progn
             ;; Erase the process buffer
@@ -159,9 +178,6 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
               (goto-char (point-min))
               (erase-buffer)
               (set-buffer cur))
-
-            ;; Display the process buffer
-            (display-buffer (process-buffer proc))
 
             (setf my-completion-lines
                   '((name . "Completion clang")
@@ -211,9 +227,10 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
 ;; the buffer, e.g., '(', ',' or '.'.
 (defun clang-complete-self-insert (arg)
   (interactive "p")
-  (self-insert-command arg)
-  (save-buffer)
-  (clang-complete))
+  (save-window-excursion
+   (self-insert-command arg)
+   (save-buffer)
+   (clang-complete)))
 
 ;; Invoked when the user types an alphanumeric character or "_" to
 ;; update the filter for the currently-active code completion.
