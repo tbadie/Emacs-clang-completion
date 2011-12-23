@@ -1,0 +1,8 @@
+
+* I use heavily emacs, and I need completion. I found that vim
+use clang to have a good completion process, and I think Emacs should use it
+too.
+
+There is already a library which use it, but it is not exactly what I want.
+So I fork it. Original can be found here:
+`https://llvm.org/svn/llvm-project/cfe/trunk/utils/clang-completion-mode.el'
