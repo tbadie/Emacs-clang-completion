@@ -116,7 +116,17 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
                          "*trololololo*"))
 
 (defun format-and-insert(selection)
-  (insert selection))
+  (let ((my-line selection))
+;    (replace-regexp-in-string "COMPLETION" "_" line)
+;    (replace-regexp-in-string " : .*" "" line)
+    (string-match ": \\([^ ]\+\\) :" my-line)
+    (let ((name (substring my-line (match-beginning 1) (match-end 1))))
+      (insert name))
+
+    (if (string-match " : [^(]\*(" my-line)
+        (insert "("))
+    (if (string-match "()" my-line)
+        (insert ")"))))
 
 (defun clean-and-set (lines)
   (progn
@@ -134,7 +144,7 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
     (setf my-completion-lines
           '((name . "Completion clang")
             (candidates . lines)
-            (action . (("Action name" . (format-and-insert (selection)))))))
+            (action . (("Insertion" . (format-and-insert (selection)))))))
 
     (anything-apply-selection)))
 
@@ -192,8 +202,9 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
             (setf my-completion-lines
                   '((name . "Completion clang")
                     (candidates . completion-lines)
-                    (action . (("Action name" . (lambda (selection)
-                                                  (insert selection)))))))
+                    (action . (("Action name" .
+                                (format-and-insert))))))
+
             (anything-apply-selection))))))
 
 (defun clang-complete ()
