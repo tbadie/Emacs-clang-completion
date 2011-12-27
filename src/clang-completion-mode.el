@@ -48,7 +48,7 @@
 ;; Enki: I change the way we complete. I use anything. In my own
 ;; configuration, anything is already loaded.
 ;; If it is not the case for you, uncomment the require here:
-;; (require 'anything)
+(require 'anything)
 
 ;;; Code:
 ;;; The clang executable
@@ -114,8 +114,8 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
 ;; Completion
 (defun anything-apply-selection ()
   (interactive)
-  (anything-other-buffer '(my-completion-lines)
-                         "*Clang Completion*"))
+  (anything-at-point '(my-completion-lines)
+		     (thing-at-point 'symbol)))
 
 (defun anything-goto-error()
   (interactive)
@@ -127,7 +127,8 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
 (defun format-and-insert(selection)
   (let ((my-line selection))
     (string-match ": \\([^ ]\+\\) :" my-line)
-    (let ((name (substring my-line (match-beginning 1) (match-end 1))))
+    (let ((name (substring (substring my-line (match-beginning 1) (match-end 1))
+			   (length (thing-at-point 'symbol)))))
       (insert name))
     (if (string-match " : [^(]\*(" my-line)
         (insert "("))
@@ -187,13 +188,14 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
 
             (anything-apply-selection))))))
 
-(defun clang-complete ()
+(defun x-clang-complete ()
   (interactive)
   (let* ((cc-point (concat (buffer-file-name)
                            ":"
                            (number-to-string (+ 1 (current-line)))
                            ":"
-                           (number-to-string (+ 1 (current-column)))))
+                           (number-to-string (- (+ 1 (current-column))
+						(length (thing-at-point 'symbol))))))
          (cc-pch (if (equal clang-completion-prefix-header "") nil
                    (list "-include-pch"
                          (concat clang-completion-prefix-header ".pch"))))
@@ -230,27 +232,19 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
   (save-window-excursion
    (self-insert-command arg)
    (save-buffer)
-   (clang-complete)))
+   (x-clang-complete)))
+
+(defun clang-complete ()
+  (interactive)
+  (save-window-excursion
+    (save-buffer)
+    (x-clang-complete)))
 
 ;; Invoked when the user types an alphanumeric character or "_" to
 ;; update the filter for the currently-active code completion.
 (defun clang-filter-self-insert (arg)
   (interactive "p")
   (self-insert-command arg)
-  (clang-update-filter))
-
-;; Invoked when the user types the backspace key to update the filter
-;; for the currently-active code completion.
-(defun clang-backspace ()
-  (interactive)
-  (delete-backward-char 1)
-  (clang-update-filter))
-
-;; Invoked when the user types the delete key to update the filter
-;; for the currently-active code completion.
-(defun clang-delete ()
-  (interactive)
-  (delete-backward-char 1)
   (clang-update-filter))
 
 ;; Set up the keymap for the Clang minor mode.
