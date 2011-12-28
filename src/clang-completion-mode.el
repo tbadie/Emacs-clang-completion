@@ -107,7 +107,8 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
 
 ;; Determine whether
 (defun is-error-line (line)
-  (string-match "[^:]+:[^:]+: error" line))
+  (or (string-match "[^:]+:[^:]+: error" line)
+      (string-match "[^:]+:[^:]+: fatal error" line)))
 
 
 ;; Support for anything
@@ -138,7 +139,7 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
 
 ;; Allow the user to go to the error.
 (defun my-goto-error(selection)
-  (string-match "^\\([^:]+\\):\\([^:]+\\):\\([^:]+\\): error" selection)
+  (string-match "^\\([^:]+\\):\\([^:]+\\):\\([^:]+\\): " selection)
   ;;              ^-filename-^^---line--^^--column--^
   (let ((file (substring selection (match-beginning 1) (match-end 1)))
         (line (substring selection (match-beginning 2) (match-end 2)))
