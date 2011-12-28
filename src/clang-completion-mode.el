@@ -113,15 +113,17 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
 
 ;; Support for anything
 ;; Completion
-(defun anything-apply-selection ()
+(defun anything-print-info ()
   (interactive)
-  (anything-at-point '(my-completion-lines)
-		     (thing-at-point 'symbol)))
+  (anything-other-buffer '(my-error-lines
+			   my-completion-lines)
+			 "*Clang Complete*"))
 
-(defun anything-goto-error()
+(defun anything-print-info-with-init ()
   (interactive)
-  (anything-other-buffer '(my-error-lines)
-                         "*Clang Errors*"))
+  (anything-at-point '(my-error-lines
+		       my-completion-lines)
+		     (thing-at-point 'symbol)))
 
 
 ;; Take a line of clang, format it, and insert into the developper's buffer
@@ -155,39 +157,21 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
   (let* ((all-lines (split-string clang-result-string "\n"))
          (error-lines (filter 'is-error-line all-lines))
          (completion-lines (filter 'is-completion-line all-lines)))
+
+    (setf my-completion-lines
+	  '((name . "Completion clang")
+	    (candidates . completion-lines)
+	    (action . (("Action name" .
+			(format-and-insert))))))
+
+    (setf my-error-lines
+	  '((name . "Error Clang")
+	    (candidates . error-lines)
+	    (action . (("Action name" .
+			(my-goto-error))))))
     (if (consp error-lines)
-          (progn
-            ;; Erase the process buffer
-            (let ((cur (current-buffer)))
-              (set-buffer (process-buffer proc))
-              (goto-char (point-min))
-              (erase-buffer)
-              (set-buffer cur))
-
-            (setf my-error-lines
-                  '((name . "Error Clang")
-                    (candidates . error-lines)
-                    (action . (("Action name" .
-                                (my-goto-error))))))
-
-            (anything-goto-error))
-
-      (if (consp completion-lines)
-          (progn
-            ;; Erase the process buffer
-            (let ((cur (current-buffer)))
-              (set-buffer (process-buffer proc))
-              (goto-char (point-min))
-              (erase-buffer)
-              (set-buffer cur))
-
-            (setf my-completion-lines
-                  '((name . "Completion clang")
-                    (candidates . completion-lines)
-                    (action . (("Action name" .
-                                (format-and-insert))))))
-
-            (anything-apply-selection))))))
+	(anything-print-info)
+      (anything-print-info-with-init))))
 
 (defun x-clang-complete ()
   (interactive)
