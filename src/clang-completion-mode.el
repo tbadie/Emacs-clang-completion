@@ -130,13 +130,18 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
 (defun format-and-insert(selection)
   (let ((my-line selection))
     (string-match ": \\([^ ]\+\\) :" my-line)
-    (let ((name (substring (substring my-line (match-beginning 1) (match-end 1))
-			   (length (thing-at-point 'symbol)))))
-      (insert name))
-    (if (string-match " : [^(]\*(" my-line)
-        (insert "("))
-    (if (string-match "()" my-line)
-        (insert ")"))))
+    (let ((name (substring my-line (match-beginning 1) (match-end 1))))
+      (if (string-match "Pattern" name)
+	  (progn
+	    (string-match ": Pattern : \\([^<]+\\)" my-line)
+	    (insert (substring (substring my-line (match-beginning 1) (match-end 1))
+			       (length (thing-at-point 'symbol)))))
+	(progn
+	  (insert (substring name (length (thing-at-point 'symbol))))
+	  (if (string-match " : [^(]\*(" my-line)
+	      (insert "("))
+	  (if (string-match "()" my-line)
+	      (insert ")")))))))
 
 
 ;; Allow the user to go to the error.
