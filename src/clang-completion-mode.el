@@ -125,15 +125,38 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
 		       my-completion-lines)
 		     (thing-at-point 'symbol)))
 
+(defun compute-snippet (selection)
+  (let ((n 0)
+	(result selection))
+    (while (string-match "<#" result)
+      (progn
+	(setq result (replace-regexp-in-string "<#"
+					       '(lambda (selection)
+						 (progn
+						   (setq n (1+ n))
+						   (concat "${"
+							   (number-to-string n)
+							   ":")))
+					       result))
+	(setq result (replace-regexp-in-string "#>" "}" result))))
+    (yas/expand-snippet (replace-regexp-in-string "$" "$0" result))))
+
+
+(defun snippet-select (selection)
+  (let* ((first (replace-regexp-in-string "^[^:]\+: " "" selection))
+	 (second (replace-regexp-in-string "\\[#[^#]+#\\]" "" first)))
+    (compute-snippet (substring second (length (thing-at-point 'symbol))))))
+
+
 
 ;; Take a line of clang, format it, and insert into the developper's buffer
 (defun format-and-insert(selection)
   (let ((my-line selection))
-    (string-match ": \\([^ ]\+\\) :" my-line)
+    (string-match "^\\([^:]\+\\) :" my-line)
     (let ((name (substring my-line (match-beginning 1) (match-end 1))))
       (if (string-match "Pattern" name)
 	  (progn
-	    (string-match ": Pattern : \\([^<]+\\)" my-line)
+	    (string-match "^Pattern : \\([^<]+\\)" my-line)
 	    (insert (substring (substring my-line (match-beginning 1) (match-end 1))
 			       (length (thing-at-point 'symbol)))))
 	(progn
@@ -161,13 +184,16 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
 (defun clang-completion-sentinel (proc event)
   (let* ((all-lines (split-string clang-result-string "\n"))
          (error-lines (filter 'is-error-line all-lines))
-         (completion-lines (filter 'is-completion-line all-lines)))
+         (completion-lines (filter 'is-completion-line all-lines))
+	 (beautiful-completion-lines (mapcar '(lambda (line)
+						(substring line 12)) completion-lines)))
 
     (setf my-completion-lines
 	  '((name . "Completion clang")
-	    (candidates . completion-lines)
+	    (candidates . beautiful-completion-lines)
 	    (action . (("Action name" .
-			(format-and-insert))))))
+;;			(format-and-insert))))))
+			(snippet-select))))))
 
     (setf my-error-lines
 	  '((name . "Error Clang")
