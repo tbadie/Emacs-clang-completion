@@ -128,17 +128,16 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
 (defun compute-snippet (selection)
   (let ((n 0)
 	(result selection))
-    (while (string-match "<#" result)
-      (progn
-	(setq result (replace-regexp-in-string "<#"
-					       '(lambda (selection)
-						 (progn
-						   (setq n (1+ n))
-						   (concat "${"
-							   (number-to-string n)
-							   ":")))
-					       result))
-	(setq result (replace-regexp-in-string "#>" "}" result))))
+    (progn
+      (setq result (replace-regexp-in-string "<#"
+					     '(lambda (selection)
+						(progn
+						  (setq n (1+ n))
+						  (concat "${"
+							  (number-to-string n)
+							  ":")))
+					     result))
+      (setq result (replace-regexp-in-string "#>" "}" result)))
     (yas/expand-snippet (replace-regexp-in-string "$" "$0" result))))
 
 
