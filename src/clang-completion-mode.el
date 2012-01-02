@@ -129,6 +129,10 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
   (let ((n 0)
 	(result selection))
     (progn
+      ;; The replace-regexp-in-string function can take as second argument
+      ;; a function which is called for every replacement. We want to have
+      ;; each `<#' replaced by a "`${' `number in the string' `:'. With this
+      ;; non-pure lambda we can do this.
       (setq result (replace-regexp-in-string "<#"
 					     '(lambda (selection)
 						(progn
