@@ -108,8 +108,8 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
 
 ;; Determine whether
 (defun is-error-line (line)
-  (or (string-match "[^:]+:[^:]+: error" line)
-      (string-match "[^:]+:[^:]+: fatal error" line)))
+  (or (string-match "[^:]+:[^:]+: error:" line)
+      (string-match "[^:]+:[^:]+: fatal error:" line)))
 
 
 ;; Support for anything
