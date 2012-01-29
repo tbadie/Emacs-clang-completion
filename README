@@ -1,6 +1,8 @@
 # -*- org -*-
 
-* I use heavily emacs, and I need completion. I found that vim
+* Why this project
+
+I use heavily emacs, and I need completion. I found that vim
 use clang to have a good completion process, and I think Emacs should use it
 too.
 
@@ -87,3 +89,18 @@ right completion for the two without any error.
 
 The seconddir is here to show that clang-complete is not fooled by
 template. Even with specialization.
+
+* Limitations
+
+** Unused window
+
+Currently clang-complete create some useless window. We need to delete
+them in the aim to do not flood the buffer number.
+
+
+** Execution time
+
+We are using clang directly, but it parses everything at every call,
+which is a very huge problem when the compilation time is not .
+
+We must find a way to use "libclang" instead.
