@@ -62,7 +62,8 @@
   "Extra flags to pass to the Clang executable.
 This variable will typically contain include paths, e.g., -I~/MyProject."
   :type '(repeat (string :tag "Argument" ""))
-  :group 'clang-completion-mode)
+  :group 'clang-completion-mode
+  :safe  'stringp)
 
 ;;; The prefix header to use with Clang code completion.
 (setq clang-completion-prefix-header "")
@@ -218,13 +219,14 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
          (cc-pch (if (equal clang-completion-prefix-header "") nil
                    (list "-include-pch"
                          (concat clang-completion-prefix-header ".pch"))))
-         (cc-flags (if (listp clang-flags) clang-flags nil))
-         (cc-command (append `(,clang "-cc1" "-fsyntax-only")
-                             cc-flags
+         (cc-flags (if (stringp clang-flags) clang-flags nil))
+         (cc-command (append `(,clang "-cc1" "-fsyntax-only" ,cc-flags)
+;                             cc-flags
                              cc-pch
                              `("-code-completion-at" ,cc-point)
                              (list (buffer-file-name))))
          (cc-buffer-name (concat "*Clang Completion for " (buffer-name) "*")))
+
     ;; Start the code-completion process
     (if (buffer-file-name)
         (progn
@@ -258,13 +260,6 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
   (save-window-excursion
     (save-buffer)
     (x-clang-complete)))
-
-;; Invoked when the user types an alphanumeric character or "_" to
-;; update the filter for the currently-active code completion.
-(defun clang-filter-self-insert (arg)
-  (interactive "p")
-  (self-insert-command arg)
-  (clang-update-filter))
 
 ;; Set up the keymap for the Clang minor mode.
 (defvar clang-completion-mode-map nil
