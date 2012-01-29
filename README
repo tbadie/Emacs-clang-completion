@@ -1,3 +1,4 @@
+# -*- org -*-
 
 * I use heavily emacs, and I need completion. I found that vim
 use clang to have a good completion process, and I think Emacs should use it
@@ -6,3 +7,83 @@ too.
 There is already a library which use it, but it is not exactly what I want.
 So I fork it. Original can be found here:
 `https://llvm.org/svn/llvm-project/cfe/trunk/utils/clang-completion-mode.el'
+
+
+* Prerequisite
+
+You need to have a working version of clang.
+
+NOTE: On my computer, a clang 2.9 does not signal any error.
+      The clang 3.0 signals it.
+
+      Because I use clang to know if there is any errors, it is normal
+      if no errors are signaled by this library if clang is not at a
+      correct version.
+
+You also need yasnippet to use this library. It is the way chosen to
+complete.
+
+
+* Install
+
+To install it, you have to load anything.el and clang-completion-mode.el.
+
+(load-file "/path/to/anything.el")
+(load-file "/path/to/clang-completion-mode.el")
+
+And that's all you need to have a correct install.
+
+* How to use it
+
+** In the global case (no specific flags)
+
+You have only one command to remember. "clang-complete".  You just
+have to write some stuff, and then hit "M-x clang-complete", a new
+window will appear with the possibilities and the errors. You can
+navigate with the arrows, and reduce the possibilities by writing in
+the minibuffer.
+
+The way chosen if there is errors, is to not provide initial pattern.
+Otherwise it happens that you can see the error.
+
+If you choose an error, Emacs will set the cursor to the position of
+the error. Otherwise it will complete.
+
+** With flags.
+
+In a real-life project, there is a lot of flags to set. Typically
+"-I" or "-D".
+
+To solve this issue, clang-complete uses the ".dir-locals.el"
+functionality. Emacs provide a way to set directory local variable.
+This is what we are using. A typical example is to have a
+.dir-locals.el file in the root of your project, and to put here all
+your flags. If your project is huge, and you can't put too much flags,
+you have the possibility to make per-directory files.
+
+** Examples
+
+You can find some use case in the example directory.
+
+*** myheader/mysource.
+
+The interest of this example is that mysource uses "<>" to include
+myheader. So we must have to set some flags to clang. We can find
+the way to do this in the file examples/.dir-locals.el.
+
+*** myproject/src/firstddir
+
+We define two Foo class. One in the namespace foo, the other in the
+global namespace.
+
+We can see that there is no .dir-locales in this directory, but Emacs
+looks in the myproject directory. So it is okay.
+
+This example is here to show that clang-complete is able to find the
+right completion for the two without any error.
+
+
+*** myproject/src/seconddir
+
+The seconddir is here to show that clang-complete is not fooled by
+template. Even with specialization.

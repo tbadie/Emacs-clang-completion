@@ -45,9 +45,7 @@
 ;; improve the interface between this Emacs mode and Clang!
 ;;
 
-;; Enki: I change the way we complete. I use anything. In my own
-;; configuration, anything is already loaded.
-;; If it is not the case for you, uncomment the require here:
+;; Enki: I change the way we complete. I use anything.
 (require 'anything)
 
 ;;; Code:
@@ -284,4 +282,3 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
   nil
   " Clang"
   clang-completion-mode-map)
-
