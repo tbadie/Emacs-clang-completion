@@ -238,8 +238,9 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
           (setq clang-completion-buffer cc-buffer-name)
 
           (let ((cc-proc (apply 'start-process
-                                (append (list "Clang Code-Completion" cc-buffer-name)
-                                        cc-command))))
+                                (filter 'stringp
+                                        (append (list "Clang Code-Completion" cc-buffer-name)
+                                                cc-command)))))
             (set-process-filter cc-proc 'clang-completion-stash-filter)
             (set-process-sentinel cc-proc 'clang-completion-sentinel)
             )))))
