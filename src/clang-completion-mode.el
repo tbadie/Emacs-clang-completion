@@ -217,9 +217,8 @@ This variable will typically contain include paths, e.g., -I~/MyProject."
          (cc-pch (if (equal clang-completion-prefix-header "") nil
                    (list "-include-pch"
                          (concat clang-completion-prefix-header ".pch"))))
-         (cc-flags (if (stringp clang-flags) clang-flags nil))
-         (cc-command (append `(,clang "-cc1" "-fsyntax-only" ,cc-flags)
-;                             cc-flags
+         (cc-flags (filter 'stringp clang-flags))
+         (cc-command (append `(,clang "-cc1" "-fsyntax-only", @cc-flags)
                              cc-pch
                              `("-code-completion-at" ,cc-point)
                              (list (buffer-file-name))))
